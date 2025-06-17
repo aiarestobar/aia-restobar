@@ -1,0 +1,207 @@
+<!doctype HTML>
+<html>
+<head>
+ <title>Sample</title>
+</head>
+ <body>
+  Enter your HTML Code here
+ </body>
+
+<style>html{
+ color:darkviolet;
+ font-size:25px;
+ font-weight:600;
+}
+</style><script>/*Here write your javascript code*/
+</script></html>
+<!DOCTYPE html><html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIA RESTOBAR</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial Black', sans-serif;
+      background-color: #000;
+      color: #fff;
+    }
+    header {
+      background-color: #b00000;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: 2px;
+    }
+    .container {
+      padding: 10px;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .product {
+      background-color: #1a1a1a;
+      border: 2px solid #b00000;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .ticket {
+      margin-top: 20px;
+      padding: 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    .ticket ul {
+      list-style: none;
+      padding: 0;
+    }
+    .ticket li {
+      border-bottom: 1px solid #444;
+      padding: 5px 0;
+    }
+    .total {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .btn {
+      margin-top: 15px;
+      background-color: #b00000;
+      color: white;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      width: 100%;
+      cursor: pointer;
+    }
+    .history {
+      margin-top: 30px;
+    }
+    .history h2 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .history-entry {
+      background: #1e1e1e;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>AIA RESTOBAR</header>
+  <div class="container">
+    <div class="products" id="productList"></div><div class="ticket" id="ticket">
+  <strong>Pedido actual:</strong>
+  <ul id="ticketItems"></ul>
+  <div class="total" id="total">Total: 0 Gs</div>
+  <button class="btn" onclick="cobrarPedido()">COBRAR</button>
+</div>
+
+<div class="history">
+  <h2>Historial de ventas (día actual)</h2>
+  <div id="historyContainer"></div>
+</div>
+
+  </div><audio id="ding" src="https://cdn.pixabay.com/audio/2022/03/15/audio_45f4c8191e.mp3"></audio>
+
+  <script>
+    const productos = [
+      { nombre: "Hamburguesa artesanal", precio: 20000 },
+      { nombre: "Hamburguesa Oklahoma", precio: 25000 },
+      { nombre: "Hamburguesa mbarete", precio: 30000 },
+      { nombre: "Hamburguesa ñandejara", precio: 35000 },
+      { nombre: "Sándwiches de lomito", precio: 25000 },
+      { nombre: "Lomito árabe", precio: 25000 },
+      { nombre: "Chivato", precio: 35000 },
+      { nombre: "Papas fritas", precio: 15000 },
+      { nombre: "Coca cola 500ml", precio: 7000 },
+      { nombre: "Coca cola lata", precio: 6000 },
+      { nombre: "Coca cola 1L", precio: 10000 },
+      { nombre: "Coca cola 1.5L", precio: 15000 },
+      { nombre: "Coca cola retornable 1L", precio: 8000 },
+    ];
+
+    let pedidoActual = [];
+    let historial = JSON.parse(localStorage.getItem("historial")) || [];
+
+    const productList = document.getElementById("productList");
+    const ticketItems = document.getElementById("ticketItems");
+    const totalDisplay = document.getElementById("total");
+    const historyContainer = document.getElementById("historyContainer");
+
+    productos.forEach((producto) => {
+      const div = document.createElement("div");
+      div.className = "product";
+      div.innerText = `${producto.nombre}\nGs ${producto.precio}`;
+      div.onclick = () => agregarProducto(producto);
+      productList.appendChild(div);
+    });
+
+    function agregarProducto(producto) {
+      pedidoActual.push(producto);
+      renderTicket();
+    }
+
+    function renderTicket() {
+      ticketItems.innerHTML = "";
+      let total = 0;
+      pedidoActual.forEach((item) => {
+        total += item.precio;
+        const li = document.createElement("li");
+        li.textContent = `${item.nombre} - ${item.precio} Gs`;
+        ticketItems.appendChild(li);
+      });
+      totalDisplay.innerText = `Total: ${total.toLocaleString()} Gs`;
+    }
+
+    function cobrarPedido() {
+      if (pedidoActual.length === 0) return;
+
+      const audio = document.getElementById("ding");
+      audio.play();
+
+      const venta = {
+        fecha: new Date().toLocaleString(),
+        productos: [...pedidoActual],
+      };
+      historial.push(venta);
+      localStorage.setItem("historial", JSON.stringify(historial));
+
+      pedidoActual = [];
+      renderTicket();
+      renderHistorial();
+    }
+
+    function renderHistorial() {
+      const resumen = {};
+      historial.forEach((venta) => {
+        venta.productos.forEach((producto) => {
+          if (!resumen[producto.nombre]) {
+            resumen[producto.nombre] = { cantidad: 0, total: 0 };
+          }
+          resumen[producto.nombre].cantidad++;
+          resumen[producto.nombre].total += producto.precio;
+        });
+      });
+
+      historyContainer.innerHTML = "";
+      for (const nombre in resumen) {
+        const data = resumen[nombre];
+        const div = document.createElement("div");
+        div.className = "history-entry";
+        div.innerHTML = `<strong>${nombre}</strong><br>Vendidos: ${data.cantidad} | Total: ${data.total.toLocaleString()} Gs`;
+        historyContainer.appendChild(div);
+      }
+    }
+
+    renderHistorial();
+  </script></body>
+</html>
